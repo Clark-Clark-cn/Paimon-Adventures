@@ -96,9 +96,9 @@ public:
             rightAnim.setFrameTime(50);
             rightAnim.setLoop(true);
         }
-        static int beeAttackInterval=config.get("enemy.bee.attackInterval").asInt();
-        static int boarAttackInterval=config.get("enemy.boar.attackInterval").asInt();
-        static int snailAttackInterval=config.get("enemy.snail.attackInterval").asInt();
+        static int beeAttackInterval=config.get("enemy.bee.invincibleTime").asInt();
+        static int boarAttackInterval=config.get("enemy.boar.invincibleTime").asInt();
+        static int snailAttackInterval=config.get("enemy.snail.invincibleTime").asInt();
         attackTimer.setInterval(type==BEE?beeAttackInterval:
             (type==BOAR?boarAttackInterval:snailAttackInterval));
         attackTimer.setLoop(false);
@@ -125,6 +125,11 @@ public:
             putimage(pos_shadow, &img_shadow_enemy);
             currentAnim->draw(position);
         }
+        pos_shadow.y=position.y+size.y-shadow_offset_y;
+        if(drawIMG){
+            putimage(pos_shadow, &img_shadow_enemy);
+            currentAnim->draw(position);
+        }
         if(debug){
             setlinecolor(RED);
             rectangle(position.x-size.x/2, position.y-size.y/2, position.x+size.x/2, position.y+size.y/2);
@@ -134,7 +139,12 @@ public:
 		attackTimer.update(deltaTime);
         drawSwitchTimer.update(deltaTime);
         velocity = { 0,0 };
+		attackTimer.update(deltaTime);
+        drawSwitchTimer.update(deltaTime);
+        velocity = { 0,0 };
         Vector2 toPlayer = player->getPosition() - position;
+
+        velocity = toPlayer.normalized() * speed;
 
         velocity = toPlayer.normalized() * speed;
         if (toPlayer.x > 0) isFacingRight = true;

@@ -19,8 +19,8 @@ class StatusBar;
 class Player{
     friend class StatusBar;
 protected:
-    Vector2 position{config.get("player.init.position.x").asInt(), 
-        config.get("player.init.position.y").asInt()};
+    Vector2 position{config.get("player.init.position.x").asFloat(), 
+        config.get("player.init.position.y").asFloat()};
     Vector2 velocity{0,0};
     Vector2 size{20,20};
     bool left_key=false;
@@ -145,10 +145,11 @@ public:
 	void addMP(int delta) { mp = min(mp + delta, maxMp); }
     int getHP() const { return hp; }
     void addHP(int health) { 
-        hp = min(hp + health, 100); 
+        hp = min(hp + health, max_hp); 
         attackTimer.setEnabled(true);
         canAttack=false;
         drawSwitchTimer.setEnabled(true);
+        std::cout<<"HP: "<<hp<<std::endl;
     }
     bool canAttackNow() const { return canAttack; }
 };

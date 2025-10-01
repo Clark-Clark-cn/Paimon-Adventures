@@ -8,7 +8,7 @@
 #include <Windows.h>
 
 class ConfigItem{
-    std::string value;
+    std::string value="0";
 public:
     ConfigItem() = default;
     ConfigItem(const std::string& val):value(val){}
@@ -63,6 +63,7 @@ public:
         default_instance = new Config(true);
         load();
         setDefaults();
+        printAll();
     }
     ~Config() {
         save();
@@ -170,6 +171,11 @@ public:
         setifno("debug", false);
         setifno("pos.status_bar.x", 20);
         setifno("pos.status_bar.y", 10);
+    }
+    void printAll(){
+        for (const auto& pair : data) {
+            std::cout << pair.first << "=" << pair.second.asString() << std::endl;
+        }
     }
 };
 extern Config config;

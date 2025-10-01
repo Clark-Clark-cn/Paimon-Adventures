@@ -1,6 +1,8 @@
 #include <graphics.h>
 #include <iostream>
 #include <windows.h>
+#include "config.h"
+Config config;
 #include "player.h"
 #include "paimon.h"
 #include "timer.h"
@@ -81,8 +83,8 @@ void main()
 		start = true;
 	});
 	StatusBar* statusBar = nullptr;
-	int statusBarX = config.get("pos.status_bar.x").asInt();
-	int statusBarY = config.get("pos.status_bar.y").asInt();
+	float statusBarX = config.get("pos.status_bar.x").asFloat();
+	float statusBarY = config.get("pos.status_bar.y").asFloat();
 	rect.left = 1280/2+200;
 	rect.right = rect.left + 84;
 	rect.top = 530;

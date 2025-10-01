@@ -130,10 +130,15 @@
     <ClInclude Include="Atlas.h" />
     <ClInclude Include="base.h" />
     <ClInclude Include="bullet.h" />
+    <ClInclude Include="button.h" />
+    <ClInclude Include="config.h" />
+    <ClInclude Include="enemy.h" />
     <ClInclude Include="paimon.h" />
     <ClInclude Include="player.h" />
+    <ClInclude Include="statusBar.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="Vector2.h" />
+    <ClInclude Include="warrior.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -44,5 +44,20 @@
     <ClInclude Include="Vector2.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="button.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="enemy.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="statusBar.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="warrior.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

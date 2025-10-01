@@ -67,9 +67,9 @@ public:
     }
     void Update(unsigned int deltaTime)override{
         Player::Update(deltaTime);
-        currentAnim=&(isFacingRight)?
-        (velocity.x==0?&rightIdleAnim:&rightRunAnim):
-        (velocity.x==0?&leftIdleAnim:&leftRunAnim);
+        currentAnim=&(isFacingRight?
+        (velocity.x==0?rightIdleAnim:rightRunAnim):
+        (velocity.x==0?leftIdleAnim:leftRunAnim));
         if(currentAnim) currentAnim->update(deltaTime);
         if(mp>=maxMp&&skill_key)skill();
     }

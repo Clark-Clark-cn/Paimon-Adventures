@@ -31,7 +31,7 @@ public:
         if(pastTime>=Interval){
             Callback();
             if(loop){
-                pastTime-=Interval;
+                pastTime%=Interval;
             }else{
                 pastTime=0;
                 enabled=false;
