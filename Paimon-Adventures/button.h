@@ -17,11 +17,11 @@ class Button{
     std::function<void()> onClick=nullptr;
 public:
     Button()=default;
-    Button(RECT r, IMAGE* idle, IMAGE* hover, IMAGE* pressed){
+    Button(RECT r, IMAGE* idle, IMAGE* hover=nullptr, IMAGE* pressed=nullptr){
         rect=r;
         img_idle=idle;
-        img_hover=hover;
-        img_pressed=pressed;
+        img_hover=(hover==nullptr)?idle:hover;
+        img_pressed=(pressed==nullptr)?idle:pressed;
     }
     ~Button()=default;
     void setRect(RECT r){rect=r;}

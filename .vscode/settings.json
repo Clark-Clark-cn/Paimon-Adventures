@@ -63,6 +63,17 @@
         "xstring": "cpp",
         "xtr1common": "cpp",
         "xtree": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "cinttypes": "cpp",
+        "coroutine": "cpp",
+        "iostream": "cpp",
+        "map": "cpp",
+        "source_location": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp",
+        "codecvt": "cpp",
+        "filesystem": "cpp",
+        "fstream": "cpp",
+        "*.rh": "cpp"
     }
 }

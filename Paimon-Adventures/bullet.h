@@ -2,17 +2,19 @@
 
 #include <graphics.h>
 #include <vector>
+#include "config.h"
 #include "Vector2.h"
 #include <memory>
 #include "base.h"
 
-double RADIAL_SPEED=0.0045;
-double TANGENT_SPEED=0.0015;
+double RADIAL_SPEED=config.get("bullet.radial_speed").asFloat();
+double TANGENT_SPEED=config.get("bullet.tangent_speed").asFloat();
 extern Player* player;
-extern std::vector<std::shared_ptr<class Bullet>> bullets;
+extern std::vector<std::shared_ptr<class Bullet>> bullets_around;
 
 class Bullet{
     Vector2 position;
+    Vector2 velocity{0,0};
     IMAGE* img=nullptr;
     bool active=true;
     std::function<void()> onHit=nullptr;
@@ -20,13 +22,20 @@ public:
     Bullet(){}
     Bullet(IMAGE* image): img(image){}
     ~Bullet()=default;
-    static void UpdateBullets(unsigned int deltaTime){
-        double radian_interval=2*3.1415926/bullets.size();
+    static void UpdateBulletsAround(unsigned int deltaTime){
+        double radian_interval=2*3.1415926/bullets_around.size();
         double radius=100+25*sin(GetTickCount()*RADIAL_SPEED);
-        for(int i=0;i<bullets.size();i++){
+        for(int i=0;i<bullets_around.size();i++){
             double radian=i*radian_interval+GetTickCount()*TANGENT_SPEED;
-            bullets[i]->position.x=player->getPosition().x+player->getSize().x/2+radius*sin(radian);
-            bullets[i]->position.y=player->getPosition().y+player->getSize().y/2+radius*cos(radian);
+            bullets_around[i]->position.x=player->getPosition().x+player->getSize().x/2+radius*sin(radian);
+            bullets_around[i]->position.y=player->getPosition().y+player->getSize().y/2+radius*cos(radian);
+        }
+    }
+    void update(unsigned int deltaTime){
+        if(!active) return;
+        position+=velocity*deltaTime;
+        if(position.x<0 || position.x>1280 || position.y<0 || position.y>720){
+            active=false;
         }
     }
     void Draw(){
@@ -46,4 +55,6 @@ public:
     void hit(){
         if(onHit) onHit();
     }
+    void setPosition(const Vector2& pos){position=pos;}
+    void setVelocity(const Vector2& vel){velocity=vel;}
 };

@@ -7,11 +7,23 @@
 
 extern bool debug;
 extern IMAGE img_shadow_enemy;
-extern Atlas atlas_enemy_left;
-extern Atlas atlas_enemy_right;
+extern Atlas atlas_boar_left;
+extern Atlas atlas_boar_right;
+extern Atlas atlas_snail_left;
+extern Atlas atlas_snail_right;
+extern Atlas atlas_bee_left;
+extern Atlas atlas_bee_right;
 
 extern Player* player;
+extern std::vector<std::shared_ptr<Bullet>> bullets_custom;
 extern int score;
+
+static const float beeSpeed = config.get("enemy.bee.speed").asFloat();
+static const int beeHp = config.get("enemy.bee.hp").asInt();
+static const float boarSpeed = config.get("enemy.boar.speed").asFloat();
+static const int boarHp = config.get("enemy.boar.hp").asInt();
+static const float snailSpeed = config.get("enemy.snail.speed").asFloat();
+static const int snailHp = config.get("enemy.snail.hp").asInt();
 
 class Enemy{
     Vector2 position;
@@ -28,6 +40,18 @@ class Enemy{
         BOTTOM
 	};
 	int spawnSide = rand()%4;
+    enum Type{
+        BOAR=0,
+        SNAIL=1,
+        BEE
+    };
+    int type=rand()%2==0?(rand()%2==0?BEE:SNAIL):BOAR;
+    int hp=type==BEE?beeHp:(type==BOAR?boarHp:snailHp);
+    float speed=type==BEE?beeSpeed:(type==BOAR?boarSpeed:snailSpeed);
+    bool canAttack=true;
+    Timer attackTimer;
+    bool drawIMG=true;
+    Timer drawSwitchTimer;
 public:
     bool alive=true;
     Enemy(){
@@ -48,49 +72,119 @@ public:
                 break;
         }
         position=pos;
-        size={(float)atlas_enemy_left.getImage(0)->getwidth(), (float)atlas_enemy_left.getImage(0)->getheight()};
-        leftAnim.setAtlas(&atlas_enemy_left);
-        leftAnim.setFrameTime(50);
-        leftAnim.setLoop(true);
-        rightAnim.setAtlas(&atlas_enemy_right);
-        rightAnim.setFrameTime(50);
-        rightAnim.setLoop(true);
+        size={(float)atlas_boar_left.getImage(0)->getwidth(), (float)atlas_boar_left.getImage(0)->getheight()};
+        if(type==SNAIL){
+            size={(float)atlas_snail_left.getImage(0)->getwidth(), (float)atlas_snail_left.getImage(0)->getheight()};
+            leftAnim.setAtlas(&atlas_snail_left);
+            leftAnim.setFrameTime(100);
+            leftAnim.setLoop(true);
+            rightAnim.setAtlas(&atlas_snail_right);
+            rightAnim.setFrameTime(100);
+            rightAnim.setLoop(true);
+        }else if(type==BOAR){
+            leftAnim.setAtlas(&atlas_boar_left);
+            leftAnim.setFrameTime(50);
+            leftAnim.setLoop(true);
+            rightAnim.setAtlas(&atlas_boar_right);
+            rightAnim.setFrameTime(50);
+            rightAnim.setLoop(true);
+        }else{
+            leftAnim.setAtlas(&atlas_bee_left);
+            leftAnim.setFrameTime(50);
+            leftAnim.setLoop(true);
+            rightAnim.setAtlas(&atlas_bee_right);
+            rightAnim.setFrameTime(50);
+            rightAnim.setLoop(true);
+        }
+        static int beeAttackInterval=config.get("enemy.bee.attackInterval").asInt();
+        static int boarAttackInterval=config.get("enemy.boar.attackInterval").asInt();
+        static int snailAttackInterval=config.get("enemy.snail.attackInterval").asInt();
+        attackTimer.setInterval(type==BEE?beeAttackInterval:
+            (type==BOAR?boarAttackInterval:snailAttackInterval));
+        attackTimer.setLoop(false);
+        attackTimer.setCallback([this](){
+            canAttack=true;
+            drawIMG=true;
+            drawSwitchTimer.setEnabled(false);
+        });
+        drawSwitchTimer.setInterval(50);
+        drawSwitchTimer.setLoop(true);
+        drawSwitchTimer.setCallback([this](){
+            drawIMG=!drawIMG;
+        });
+        attackTimer.setEnabled(false);
+        drawSwitchTimer.setEnabled(false);
     }
     ~Enemy()=default;
     void Draw() {
+        static int shadow_offset_y=config.get("enemy.shadow_offset_y").asInt();
         Vector2 pos_shadow;
         pos_shadow.x=position.x+size.x/2-img_shadow_enemy.getwidth()/2;
-        pos_shadow.y=position.y+size.y-35;
-
-        putimage(pos_shadow, &img_shadow_enemy);
-        currentAnim->draw(position);
+        pos_shadow.y=position.y+size.y-shadow_offset_y;
+        if(drawIMG){
+            putimage(pos_shadow, &img_shadow_enemy);
+            currentAnim->draw(position);
+        }
         if(debug){
             setlinecolor(RED);
             rectangle(position.x-size.x/2, position.y-size.y/2, position.x+size.x/2, position.y+size.y/2);
         }
     }
     void Update(unsigned int deltaTime) {
-		velocity = { 0,0 };
+		attackTimer.update(deltaTime);
+        drawSwitchTimer.update(deltaTime);
+        velocity = { 0,0 };
         Vector2 toPlayer = player->getPosition() - position;
-        velocity = toPlayer.normalized() * 0.15f;
+
+        velocity = toPlayer.normalized() * speed;
         if (toPlayer.x > 0) isFacingRight = true;
         else if (toPlayer.x < 0) isFacingRight = false;
         position+=velocity*deltaTime;
         currentAnim=isFacingRight?&rightAnim:&leftAnim;
         currentAnim->update(deltaTime);
-        if(isCollisionPlayer(*player)){
+        if(isCollisionPlayer(*player)&&player->canAttackNow()){
             mciSendString(L"play hurt from 0", NULL, 0, NULL);
-            mciSendString(L"stop bgm", NULL, 0, NULL);
-            std::wstring ws = L"Your score: " + std::to_wstring(score);
-            MessageBox(NULL, ws.c_str(), L"Game Over!", MB_OK|MB_ICONINFORMATION|MB_SYSTEMMODAL);
-            exit(0);
+            static int beeDamage=config.get("enemy.bee.damage").asInt();
+            static int boarDamage=config.get("enemy.boar.damage").asInt();
+            static int snailDamage=config.get("enemy.snail.damage").asInt();
+            int damage=type==BEE?beeDamage:(type==BOAR?boarDamage:snailDamage);
+            player->addHP(-damage);
+            if(type==BEE)speed=speed*0.8f;
         }
-        for(auto& b: bullets){
-            if(b->isActive() && isCollisionBullet(*b)){
-                mciSendString(L"play hit from 0", NULL, 0, NULL);
-                alive=false;
-                score++;
-                b->hit();
+        if(canAttack){
+            for(auto& b: bullets_around){
+                if(b->isActive() && isCollisionBullet(*b)){
+                    mciSendString(L"play hit from 0", NULL, 0, NULL);
+                    b->hit();
+                    hp--;
+                    if(hp<=0){
+                        alive=false;
+                        score++;
+                    }
+                    canAttack=false;
+                    attackTimer.setEnabled(true);
+                    drawSwitchTimer.setEnabled(true);
+                    attackTimer.reset();
+                    drawSwitchTimer.reset();
+                    break;
+                }
+            }
+            for(auto& b: bullets_custom){
+                if(b->isActive() && isCollisionBullet(*b)){
+                    mciSendString(L"play hit from 0", NULL, 0, NULL);
+                    b->hit();
+                    hp--;
+                    if(hp<=0){
+                        alive=false;
+                        score++;
+                    }
+                    canAttack=false;
+                    attackTimer.setEnabled(true);
+                    drawSwitchTimer.setEnabled(true);
+                    attackTimer.reset();
+                    drawSwitchTimer.reset();
+                    break;
+                }
             }
         }
     }
