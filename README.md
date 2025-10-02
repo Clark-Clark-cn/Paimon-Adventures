@@ -15,7 +15,7 @@ Paimon encounters a group of monsters in the wild, and defeating them requires s
 
 ## Controls
 - Use `WASD` keys to control character movement.
-- Use 'E' to release skills.
+- Use 'F' to release skills.
 
 ## Objective
 - Defeat as many enemies as possible to achieve a high score.
